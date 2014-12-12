@@ -105,7 +105,7 @@ vector<int> Init_Chromosome(vector<int> t,int customers)
     }
     if(t[0]!=0)
         t[customers-1]=t[0];
-    return t;
+    return t; // nie dziala za dobrze :/ cos mi sie pojebalo w indeksowaniu
 }
 
 int main()
