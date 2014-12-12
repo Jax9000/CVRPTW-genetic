@@ -90,30 +90,32 @@ bool avalible(int start,double aktualny_czas,int pojemnosc_ciezarowki, int konie
 
 }
 
-vector<int> Init_Chromosome(vector<int> t,int customers)
+int Init_Chromosome(int *t,int customers)
 {
-    for(int i=1; i<customers; i++)
-        t.push_back(i);
-    int x=customers;
+
+    for(int i=0; i<customers; i++)
+        t[i]=i;
+    int x=customers+1;
     for(int i=1; i<customers; i++)
     {
         int y=0;
-        while(y==0)
+        while(y==0 || t[y]==0)
         y=rand()%x;
-        swap(t[y],t[i-1]);
+        swap(t[y],t[i]);
         x--;
     }
     if(t[0]!=0)
-        t[customers-1]=t[0];
-    return t; // nie dziala za dobrze :/ cos mi sie pojebalo w indeksowaniu
+       t[customers-1]=t[0];
+
+    return *t;
 }
 
 int main()
 {
     int customers=wczytaj_plik("C101.txt");
     srand(time(NULL));
-    vector<int> liczby;
-    liczby=Init_Chromosome(liczby,customers);
+    int liczby[11];
+    *liczby=Init_Chromosome(liczby,customers); // polecam zawsze dawac customers jako drugi parametr
     for(int i=0; i<customers; i++)
         cout << liczby[i] <<endl;
     return 0;
