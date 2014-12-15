@@ -95,28 +95,90 @@ int Init_Chromosome(int *t,int customers)
 
     for(int i=0; i<customers; i++)
         t[i]=i;
-    int x=customers+1;
-    for(int i=1; i<customers; i++)
+
+    int x=customers;
+
+    for(int i=1; i<customers*3; i++)
     {
-        int y=0;
-        while(y==0 || t[y]==0)
-        y=rand()%x;
-        swap(t[y],t[i]);
-        x--;
+        int z=0,y=0;
+
+        while(z==0 || y==0)
+        {
+            y=rand()%x;
+            z=rand()%x;
+        }
+        swap(t[y],t[z]);
     }
-    if(t[0]!=0)
-       t[customers-1]=t[0];
 
     return *t;
+}
+
+double cost_calculator(int *tab, int customers, int capacity)
+{   //CVRPTW
+    double cost=0;
+    double actual_time=0;
+    int actual_capacity=capacity;
+    int actual_place=0;
+    int destination=tab[1];
+    int executed=1;
+    int vehicle=0;
+
+    while(executed!=(customers))
+        {
+            if(avalible(actual_place,actual_time,actual_capacity,destination)) // jesli jest mozliwy dojazd z punktu a do b to jedz
+            {
+                if(odleglosc(actual_place,destination)+actual_time>client[destination]->READY_TIME)
+                {
+                    actual_time+=odleglosc(actual_place,destination)+client[destination]->SERVICE_TIME;
+                }
+                else
+                {
+                    actual_time=client[destination]->READY_TIME+client[destination]->SERVICE_TIME;
+                }
+
+                actual_capacity-=client[destination]->DEMAND;
+                cout << destination << " ";
+                actual_place=destination;
+            }
+            else // w przeciwnym wypadku jedz z a do 0
+            {
+                cost=actual_time+odleglosc(actual_place,0);
+                actual_time=0;
+                actual_capacity=capacity;
+                vehicle++;
+                destination=0;
+                actual_place=0;
+                cout << endl;
+            }
+
+            if (destination!=0) executed++;
+            destination=tab[executed];
+
+
+        }
+
+        cost+=actual_time+odleglosc(actual_place,0);
+        vehicle++;
+        cout << endl << "samochody: " << vehicle << endl;
+
+    return cost;
 }
 
 int main()
 {
     int customers=wczytaj_plik("C101.txt");
+
     srand(time(NULL));
-    int liczby[11];
-    *liczby=Init_Chromosome(liczby,customers); // polecam zawsze dawac customers jako drugi parametr
+    int liczby[101];
+    *liczby=Init_Chromosome(liczby,customers);
     for(int i=0; i<customers; i++)
-        cout << liczby[i] <<endl;
+        cout << liczby[i] << endl;
+    cout << "-------" << endl;
+    double x=cost_calculator(liczby,customers,pojemnosc);
+    cout << x << endl;
+    /*for(int i=1; i<customers; i++)
+        cout << liczby[i] << endl;*/
+
+
     return 0;
 }
