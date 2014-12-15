@@ -137,18 +137,19 @@ double cost_calculator(int *tab, int customers, int capacity)
                 }
 
                 actual_capacity-=client[destination]->DEMAND;
-                cout << destination << " ";
+                //cout << destination << " ";
                 actual_place=destination;
             }
             else // w przeciwnym wypadku jedz z a do 0
             {
-                cost=actual_time+odleglosc(actual_place,0);
+                cost+=actual_time+odleglosc(actual_place,0);
+                cout << actual_time+odleglosc(actual_place,0) << endl;
                 actual_time=0;
                 actual_capacity=capacity;
                 vehicle++;
                 destination=0;
                 actual_place=0;
-                cout << endl;
+                //cout << endl;
             }
 
             if (destination!=0) executed++;
@@ -156,7 +157,7 @@ double cost_calculator(int *tab, int customers, int capacity)
 
 
         }
-
+        cout << "ostatni klient: " << actual_place << endl;
         cost+=actual_time+odleglosc(actual_place,0);
         vehicle++;
         cout << endl << "samochody: " << vehicle << endl;
