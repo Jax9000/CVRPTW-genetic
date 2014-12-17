@@ -90,7 +90,7 @@ bool avalible(int start,double aktualny_czas,int pojemnosc_ciezarowki, int konie
 
 }
 
-int Init_Chromosome(int *t,int customers)
+void Init_Chromosome(int *t,int customers)
 {
 
     for(int i=0; i<customers; i++)
@@ -110,7 +110,7 @@ int Init_Chromosome(int *t,int customers)
         swap(t[y],t[z]);
     }
 
-    return *t;
+
 }
 
 double cost_calculator(int *tab, int customers, int capacity)
@@ -171,6 +171,120 @@ double cost_calculator(int *tab, int customers, int capacity)
     return cost;
 }
 
+bool contains(int *t, int x, int amount)
+{
+    for(int i=1; i<amount; i++)
+        if(t[i]==x)
+        return 1;
+
+        return 0;
+
+}
+
+int crossover(int *chromosome1, int *chromosome2,int customers)
+{
+    int i,j;
+    i=rand()%customers;
+    j=rand()%customers;
+    while(i==0 || j==0 || (i==1 && j==customers-1) || (i==customers-1 && j==1))
+    {
+        i=rand()%customers;
+        j=rand()%customers;
+    }
+
+    if(i>j)
+        swap(i,j);
+
+    int child1[customers],child2[customers];
+
+    for(int x=0; x<customers; x++)
+        child1[x]=child2[x]=0;
+
+
+    for(int x=i; x<=j; x++)
+    {
+        child1[x]=chromosome1[x];
+        child2[x]=chromosome2[x];
+    }
+
+    int actual_child=child1[j];
+    int index;
+    for(int y=1; y<customers; y++)
+        if(chromosome2[y]==actual_child)
+        index=y;
+    index++;
+    int x=j+1;
+
+
+    while(true)
+    {
+
+        while(true)
+        {
+        if(!contains(child1,(chromosome2[index]),customers) && index<customers)
+        {
+            child1[x]=chromosome2[index];
+            break;
+        }
+        else if (index<customers)
+            index++;
+        else
+            index=1;
+        cout << i << " " << j << endl;
+        }
+
+
+
+        if(x>=customers-1)
+            x=0;
+        if(x==i-1)
+            break;
+        x++;
+
+
+    }
+
+
+    actual_child=child2[j];
+    for(int y=1; y<customers; y++)
+        if(chromosome1[y]==actual_child)
+        index=y+1;
+        x=j+1;
+
+
+        while(true)
+    {
+        while(true)
+        if(!contains(child2,(chromosome1[index]),customers) && index<customers)
+        {
+            child2[x]=chromosome1[index];
+            break;
+        }
+        else if (index<customers)
+            index++;
+        else
+            index=1;
+
+        if(x>=customers-1)
+            x=0;
+        if(x==i-1)
+            break;
+        x++;
+
+    }
+
+
+    cout << "--------" << endl;
+    for(int x=0; x<customers; x++)
+        cout << child1[x] << endl;
+
+    cout << "------child2" << endl;
+    for(int x=0; x<customers; x++)
+        cout << child2[x] << endl;
+
+
+    return 0;
+}
 
 
 
@@ -178,11 +292,15 @@ int main()
 {
     int customers=wczytaj_plik("C101.txt");
     srand(time(NULL));
-    
-    int liczby[3000];
-    *liczby=Init_Chromosome(liczby,customers);
-    double x=cost_calculator(liczby,customers,pojemnosc);
-    cout << x << endl;
+
+    int chromosome[2][2040];
+    Init_Chromosome(chromosome[0],customers);
+    Init_Chromosome(chromosome[1],customers);
+    crossover(chromosome[0],chromosome[1],customers);
+
+
+    //double x=cost_calculator(liczby,customers,pojemnosc);
+    //cout << x << endl;
     /*for(int i=1; i<customers; i++)
         cout << liczby[i] << endl;*/
 
