@@ -122,6 +122,9 @@ double cost_calculator(int *tab, int customers, int capacity)
     int destination=tab[1];
     int executed=1;
     int vehicle=0;
+    fstream plik;
+    plik.open( "Out.txt", std::ios::out );
+    plik.setf(cout.fixed);
 
     while(executed!=(customers))
         {
@@ -137,19 +140,19 @@ double cost_calculator(int *tab, int customers, int capacity)
                 }
 
                 actual_capacity-=client[destination]->DEMAND;
-                //cout << destination << " ";
+                //plik << destination << " ";
                 actual_place=destination;
             }
             else // w przeciwnym wypadku jedz z a do 0
             {
                 cost+=actual_time+odleglosc(actual_place,0);
-                cout << actual_time+odleglosc(actual_place,0) << endl;
+                //cout << actual_time+odleglosc(actual_place,0) << endl;
                 actual_time=0;
                 actual_capacity=capacity;
                 vehicle++;
                 destination=0;
                 actual_place=0;
-                //cout << endl;
+                //plik << endl;
             }
 
             if (destination!=0) executed++;
@@ -157,24 +160,27 @@ double cost_calculator(int *tab, int customers, int capacity)
 
 
         }
-        cout << "ostatni klient: " << actual_place << endl;
+        //cout << "ostatni klient: " << actual_place << endl;
         cost+=actual_time+odleglosc(actual_place,0);
         vehicle++;
-        cout << endl << "samochody: " << vehicle << endl;
+        cout.precision(5);
+
+        //cout << endl << "samochody: " << vehicle << endl << fixed;
+        plik.close();
 
     return cost;
 }
 
+
+
+
 int main()
 {
     int customers=wczytaj_plik("C101.txt");
-
     srand(time(NULL));
-    int liczby[101];
+    
+    int liczby[3000];
     *liczby=Init_Chromosome(liczby,customers);
-    for(int i=0; i<customers; i++)
-        cout << liczby[i] << endl;
-    cout << "-------" << endl;
     double x=cost_calculator(liczby,customers,pojemnosc);
     cout << x << endl;
     /*for(int i=1; i<customers; i++)
