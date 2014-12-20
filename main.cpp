@@ -7,10 +7,10 @@
 #include <stdlib.h>
 #include "customer.h"
 
-#define P 3
-#define POPSIZE 8
-#define GEN 13
-#define M 1
+#define P 3 //sila losowania, dla 0 klienci beda wylosowani w kolejnosci rosnacej 1..n
+#define POPSIZE 8 //wielkosc maksymalnej populacji
+#define GEN 13 // ilosc potomkow
+#define M 1 // ilosc mutacji
 
 using namespace std;
 
@@ -41,7 +41,7 @@ fstream plik;
     i=0;
     int T[10];
     time_t start=clock();
-    while( true && (clock()<start+0.4*CLOCKS_PER_SEC))
+    while( true && (clock()<start+1*CLOCKS_PER_SEC))
     {
 
        for(j=0;j<7; j++)
@@ -119,7 +119,7 @@ void Init_Chromosome(int *t,int customers)
 }
 
 double cost_calculator(int *tab, int customers, int capacity)
-{   //CVRPTW
+{
     double cost=0;
     double actual_time=0;
     int actual_capacity=capacity;
@@ -127,9 +127,6 @@ double cost_calculator(int *tab, int customers, int capacity)
     int destination=tab[1];
     int executed=1;
     int vehicle=0;
-    //fstream plik;
-    //plik.open( "Out.txt", std::ios::out );
-   //plik.setf(cout.fixed);
 
     while(executed!=(customers))
         {
@@ -145,33 +142,27 @@ double cost_calculator(int *tab, int customers, int capacity)
                 }
 
                 actual_capacity-=client[destination]->DEMAND;
-                //plik << destination << " ";
                 actual_place=destination;
             }
-            else // w przeciwnym wypadku jedz z a do 0
+            else // w przeciwnym wypadku jedz z a do 0 i wyslij nastepna ciezarowke do b
             {
                 cost+=actual_time+odleglosc(actual_place,0);
-                //cout << actual_time+odleglosc(actual_place,0) << endl;
                 actual_time=0;
                 actual_capacity=capacity;
                 vehicle++;
                 destination=0;
                 actual_place=0;
-                //plik << endl;
             }
 
-            if (destination!=0) executed++;
+            if (destination!=0) executed++; //wykonani klienci++
             destination=tab[executed];
 
 
         }
-        //cout << "ostatni klient: " << actual_place << endl;
+
         cost+=actual_time+odleglosc(actual_place,0);
         vehicle++;
         cout.precision(5);
-
-        //cout << endl << "samochody: " << vehicle << endl << fixed;
-        //plik.close();
 
     return cost;
 }
@@ -197,6 +188,7 @@ void mutation(int *t, int *c, int customers)
     swap(t[a],t[b]);
     for(int i=0; i<customers; i++)
         c[i]=t[i];
+    // *t wejsciowa *c wyjsciowa
 }
 
 void crossover(int *chromosome1, int *chromosome2, int *c1, int *c2, int customers)
@@ -211,7 +203,7 @@ void crossover(int *chromosome1, int *chromosome2, int *c1, int *c2, int custome
     }
 
     if(i>j)
-        swap(i,j);
+        swap(i,j); //dla wygody
 
     int child1[customers],child2[customers];
 
@@ -221,17 +213,17 @@ void crossover(int *chromosome1, int *chromosome2, int *c1, int *c2, int custome
 
     for(int x=i; x<=j; x++)
     {
-        child1[x]=chromosome1[x];
+        child1[x]=chromosome1[x]; // przekopiuj czesc genow do child
         child2[x]=chromosome2[x];
     }
 
     int actual_child=child1[j];
     int index;
     for(int y=1; y<customers; y++)
-        if(chromosome2[y]==actual_child)
+        if(chromosome2[y]==actual_child) // znajdz ostatni skopiowany element w rodzicu nr 2 (czyli w tym ktory nie przekazywal jeszcze zadnego elementu)
         index=y;
     index++;
-    int x=j+1;
+    int x=j+1; //indeks child na ostatni skopiowany element + 1
 
 
     while(true)
@@ -239,28 +231,30 @@ void crossover(int *chromosome1, int *chromosome2, int *c1, int *c2, int custome
 
         while(true)
         {
-        if(!contains(child1,(chromosome2[index]),customers) && index<customers)
+        if(!contains(child1,(chromosome2[index]),customers) && index<customers) //kopiuj bez powtarzania nastepne elementy z rodzica nr2
         {
             child1[x]=chromosome2[index];
             break;
         }
         else if (index<customers)
             index++;
-        else
+        else //jesli dojdziesz do konca tablicy rodzica, przejdz na poczatek by szukac dalsze elementy
             index=1;
-  //      cout << i << " " << j << endl;
+
         }
 
-        if(x>=customers-1)
+        if(x>=customers-1) // jesli dojdziesz do konca tablicy dziecka, przejdz na poczatek
             x=0;
-        if(x==i-1)
+        if(x==i-1) //koniec kopiowania
             break;
         x++;
-
+        //  x x x 4 3 1 x x x dla i=4 i j=6
+        // powyzsza funkcja zaczyna kopiowanie od indeksu j=6 dochodzi do konca tablicy
+        // przeskakuje na poczatek tablicy, oraz konczy kopiowanie na indeksie i=4
 
     }
 
-
+    //tu jest to samo tylko ze operacje kopiowania wykonane na child2 i parent1
     actual_child=child2[j];
     for(int y=1; y<customers; y++)
         if(chromosome1[y]==actual_child)
@@ -289,7 +283,7 @@ void crossover(int *chromosome1, int *chromosome2, int *c1, int *c2, int custome
 
     }
 
-
+    //c1 i c2 to tablice wyjsciowe
     for(int x=0; x<customers; x++)
     {
         c1[x]=child1[x];
@@ -307,11 +301,12 @@ void show_results(int *tab, int customers, int capacity)
     int destination=tab[1];
     int executed=1;
     int vehicle=0;
+    vector<int> wyniki;
+    int rozmiar=0;
+
     fstream plik;
     plik.open( "Out.txt", std::ios::out );
     plik.setf(cout.fixed);
-    vector<int> wyniki;
-    int rozmiar=0;
 
     while(executed!=(customers))
         {
@@ -329,19 +324,16 @@ void show_results(int *tab, int customers, int capacity)
                 actual_capacity-=client[destination]->DEMAND;
                 wyniki.push_back(destination);
                 rozmiar++;
-                //plik << destination << " ";
                 actual_place=destination;
             }
-            else // w przeciwnym wypadku jedz z a do 0
+            else // w przeciwnym wypadku jedz z a do 0 i wyslij nastepna ciezarowke do b
             {
                 cost+=actual_time+odleglosc(actual_place,0);
-                //cout << actual_time+odleglosc(actual_place,0) << endl;
                 actual_time=0;
                 actual_capacity=capacity;
                 vehicle++;
                 destination=0;
                 actual_place=0;
-                //plik << endl;
                 wyniki.push_back(0);
                 rozmiar++;
             }
@@ -351,23 +343,19 @@ void show_results(int *tab, int customers, int capacity)
 
 
         }
-        //cout << "ostatni klient: " << actual_place << endl;
         cost+=actual_time+odleglosc(actual_place,0);
         vehicle++;
         cout.setf( ios::fixed );
         cout.precision(5);
-        //cout << vehicle << " " << cost << endl << fixed;
         plik << vehicle << " " << cost << endl;
+
         for(int i=0; i<rozmiar; i++)
             if(wyniki[i]==0)
             plik << endl;
         else
             plik << wyniki[i] << " ";
 
-        //cout << endl << "samochody: " << vehicle << endl << fixed;
         plik.close();
-
-    //return cost;
 }
 
 int main()
@@ -375,11 +363,8 @@ int main()
 
     int customers=wczytaj_plik("C101.txt");
 
-
-
     bool straznik=1; //  straznik sprawdza czy da sie dojechac do wszystkich
-                 // klientow wysylajac po jednej ciezarowce na klienta
-
+                     // klientow wysylajac po jednej ciezarowce na klienta
     for(int i=1; i<customers; i++)
     {
         if (!(avalible(0,0,pojemnosc,i)))
@@ -389,24 +374,27 @@ int main()
         }
     }
 
+/////////////////////////////////////////////////////////////
 
     if(straznik){
 
-    if(customers==3)
+    if(customers==3) //dla 2 klientow
     {
         int pop[3];
         pop[1]=1;
         pop[2]=2;
         show_results(pop,3,pojemnosc);
     }
-    else if(customers==2)
+    else if(customers==2) // dla 1 klienta
     {
         int pop[2];
         pop[1]=1;
         show_results(pop,2,pojemnosc);
     }
-    else //glowna funkcja
+    else
     {
+/////////////////////// glowna funkcja ///////////////////////
+
     int **population = new int *[POPSIZE+GEN+2];
     for (int i = 0; i<POPSIZE+GEN+2; i++)
         population[i] = new int [customers];
@@ -415,17 +403,19 @@ int main()
     srand(time(NULL));
     double the_best_cost;
     int the_best_population[customers];
-    int nothing=0;
+    int nothing=0; //ilosc generacji
 
 //////////////////////////////////////////////////////////////
 
     for(i=0;i<POPSIZE;i++)     // stworz pierwszy gatunek
         Init_Chromosome(population[i],customers);
 
-    int generation=1;
+    int generation=1; //ilosc generacji
     time_t start=clock();
     while(generation++ && (clock()<start+180*CLOCKS_PER_SEC))
     {
+
+///////////////////////  MUTACJA  ////////////////////////////////
 
     for(i=POPSIZE; i<POPSIZE+M; i++) //mutacja
     {
@@ -435,6 +425,8 @@ int main()
                 s=j-1;
         mutation(population[s],population[i],customers);
     }
+
+////////////////////////// KRZYZOWANIE ///////////////////////////
 
     for(i=POPSIZE+M; i<POPSIZE+GEN; i++) //krzyzuj
     {
@@ -450,16 +442,16 @@ int main()
                     t=j-1;
         }
         while(s==t);
-        //cout << "\nS = " << s << ", t = " << t << endl;
         crossover(population[s],population[t], population[i], population[i++], customers);
     }
-
 
     double best_cost=cost_calculator(population[0],customers,pojemnosc);
     int best=0;
 
-    for(i=0; i<POPSIZE; i++) //selekcja
-    {
+/////////////////////////// SELEKCJA I WYCENA /////////////////////////////////
+
+    for(i=0; i<POPSIZE; i++) //selekcja i wycena osobnikow
+    {                        //selekcja opiera sie na sortowaniu do punktu POPSIZE
 
         for(j=i; j<POPSIZE+GEN; j++)
         {
@@ -471,16 +463,18 @@ int main()
             }
 
         }
+
         for(int x=0; x<customers; x++)
             swap(population[i][x],population[best][x]);
     }
 
-    if(generation==2) //przypisanie najmniejszej wartosci
+/////////////////////////// ZAPIS NAJLEPSZEGO OSOBNIKA /////////////////////////////
+
+    if(generation==2) //przypisanie najmniejszej wartosci (dla pierwszej generacji)
     {
         the_best_cost=cost_calculator(population[0],customers,pojemnosc);
         for(int y=0; y<customers; y++)
             the_best_population[y]=population[0][y];
-        //cout << "nowy najlepszy osobnik: " << the_best_cost << endl;
     }
 
     if(the_best_cost>cost_calculator(population[0],customers,pojemnosc)) //czy najlepsza z danej generacji lepsza od wszystkich poprzednich?
@@ -488,61 +482,40 @@ int main()
         the_best_cost=cost_calculator(population[0],customers,pojemnosc);
         for(int y=0; y<customers; y++)
             the_best_population[y]=population[0][y];
+
+        //cout << "nowy najlepszy osobnik: " << the_best_cost << " iteracje bez zmian: " << nothing << " generacja: " << generation <<  endl;
+        // strumien pokazajucy w czasie rzeczywistym progres algorytmu
         nothing=0;
-        //cout << "nowy najlepszy osobnik: " << the_best_cost << endl;
     }
     else
-        nothing++; //ile razy pojawil progres
+        nothing++; //ile razy pojawil lepszy osobnik
 
 
     cout.setf(ios::fixed);
 
 
-    for(i=POPSIZE; i<POPSIZE+GEN; i++)
-        for(int x=0; x<customers; x++)
-        population[i][x]=0;
-
-
-
-
-    if(nothing==400) // jesli nic sie nie zmienilo w ciagu 40 generacji
-        break;
-    if(generation==10000) // limit generacji
+    if(nothing==100) // jesli nie pojawil sie lepszy osobnik 100 generacji
         break;
 
-    //if(generation%10==0) // wyswietla generacje*10
-    //    cout << "generacja x 10: " << (generation/10) << endl;
-
-    }
+    }//WHILE genetaion++ clock()<time  (
 
     for (int i = 0; i<POPSIZE+GEN; i++)
         delete [] population[i];
 
     delete [] population;
-    time_t stop=clock();
-    double pomiar=(double)(clock()-start)/CLK_TCK;
-    fstream plik;
-    plik.open("Time.txt", ios::app | ios::out );
-    plik << customers << " " << pomiar << " " << the_best_cost << endl;
-    plik.close();
-    //cout << pomiar << endl;
-
 
     show_results(the_best_population,customers,pojemnosc);
+
     }//IF ilosc klientow
-    //cout << generation << endl;
-    }//IF STRAZNIK
+
+    }//IF straznik (czy da sie dojechac do wszystkich klientow)
     else
     {
-    fstream plik;
-    plik.open( "Out.txt", std::ios::out );
-    plik << "-1";
-    plik.close();
+        fstream plik;
+        plik.open( "Out.txt", std::ios::out );
+        plik << "-1";
+        plik.close();
     }
-
-
-
-
 
     return 0;
 }
